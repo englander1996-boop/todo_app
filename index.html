@@ -19,6 +19,7 @@
         <input type="text" id="titleInput" placeholder="タスクのタイトル (必須)" required>
         <input type="text" id="descInput" placeholder="詳細 (任意)">
         <button onclick="addTask()">追加</button>
+        <button onclick="exportTasks()" style="margin-left: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer;">⬇ エクスポート</button>
     </div>
     
     <div id="taskList"></div>
@@ -70,6 +71,10 @@
             document.getElementById('titleInput').value = '';
             document.getElementById('descInput').value = '';
             fetchTasks();
+        }
+        // タスクをJSONファイルとしてエクスポート
+        function exportTasks() {
+            window.location.href = API_URL + '/export';
         }
 
         // タスクの完了状態を切り替え

@@ -14,6 +14,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from datetime import datetime
 from typing import List, Optional
+from fastapi.responses import JSONResponse
 
 #データベース設定 (SQLite)
 SQLALCHEMY_DATABASE_URL = "sqlite:///./todos.db"
@@ -76,7 +77,26 @@ def get_db():
         db.close()
 
 #APIエンドポイント
-
+@app.get("/tasks/export")
+def export_tasks(db: Session = Depends(get_db)):
+    """全タスクをJSONファイルとしてエクスポートする"""
+    tasks = db.query(Task).all()
+    # データベースのデータをJSONで出力できる形に変換
+    task_list = [
+        {
+            "id": t.id,
+            "title": t.title,
+            "description": t.description,
+            "is_completed": t.is_completed,
+            "created_at": t.created_at.isoformat()
+        }
+        for t in tasks
+    ]
+    # ファイルとしてダウンロードさせるための設定をつけて返す
+    return JSONResponse(
+        content=task_list,
+        headers={"Content-Disposition": 'attachment; filename="tasks.json"'}
+    )
 @app.post("/tasks", response_model=TaskResponse)
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     """新しいタスクを作成する"""
