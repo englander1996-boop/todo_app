@@ -14,7 +14,14 @@
     </style>
 </head>
 <body>
-    <h1>タスク管理</h1>
+    <h1>Todo App</h1>
+
+    <div style="margin-bottom: 10px; text-align: right;">
+        <select id="sortOrder" onchange="fetchTasks()" style="padding: 5px; border-radius: 4px;">
+            <option value="desc">新しい順</option>
+            <option value="asc">古い順</option>
+        </select>
+    </div>
     <div style="margin-bottom: 20px;">
         <input type="text" id="titleInput" placeholder="タスクのタイトル (必須)" required>
         <input type="text" id="descInput" placeholder="詳細 (任意)">
@@ -29,7 +36,11 @@
 
         // タスク一覧を取得して表示
         async function fetchTasks() {
-            const res = await fetch(API_URL);
+            // プルダウンから「新しい順(desc)」か「古い順(asc)」かを取得
+            const order = document.getElementById('sortOrder').value;
+            
+            // URLの末尾に ?order=desc のように条件をくっつけてバックエンドに送る
+            const res = await fetch(`${API_URL}?order=${order}`);
             const tasks = await res.json();
             const list = document.getElementById('taskList');
             list.innerHTML = '';

@@ -107,18 +107,24 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     return db_task
 
 @app.get("/tasks", response_model=List[TaskResponse])
-def read_tasks(skip: int = 0, limit: int = 100, status: Optional[str] = None, db: Session = Depends(get_db)):
+def read_tasks(skip: int = 0, limit: int = 100, status: Optional[str] = None, order: Optional[str] = "desc", db: Session = Depends(get_db)):
     """タスクの一覧を取得する"""
     query = db.query(Task)
+    
     # 完了・未完了のフィルタリング用
     if status == "completed":
         query = query.filter(Task.is_completed == True)
     elif status == "uncompleted":
         query = query.filter(Task.is_completed == False)
     
+    # 並び替え機能を追加（新しい順 or 古い順）
+    if order == "desc":
+        query = query.order_by(Task.created_at.desc())
+    else:
+        query = query.order_by(Task.created_at.asc())
+    
     tasks = query.offset(skip).limit(limit).all()
     return tasks
-
 @app.put("/tasks/{task_id}", response_model=TaskResponse)
 def update_task(task_id: int, task_update: TaskUpdate, db: Session = Depends(get_db)):
     """タスクを更新する（タイトル、詳細、完了状態）"""
