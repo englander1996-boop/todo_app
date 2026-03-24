@@ -36,6 +36,7 @@
     <div style="margin-bottom: 20px;">
         <input type="text" id="titleInput" placeholder="タスクのタイトル (必須)" required>
         <input type="text" id="descInput" placeholder="詳細 (任意)">
+        <input type="date" id="deadlineInput" style="padding: 8px;">
         <button onclick="addTask()">追加</button>
         <button onclick="exportTasks()" style="margin-left: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer;">⬇ エクスポート</button>
     </div>
@@ -61,14 +62,14 @@
                 div.className = 'task';
                 const isChecked = task.is_completed ? 'checked' : '';
                 const titleClass = task.is_completed ? 'completed' : '';
-
+                const deadlineText = task.deadline ? `期限: ${new Date(task.deadline).toLocaleDateString()}` : '';
                 div.innerHTML = `
                     <button class="star-btn ${task.is_important ? 'active' : ''}" onclick="toggleStar(${task.id}, ${task.is_important})">
                         ${task.is_important ? '★' : '☆'}
                     </button>
                     <input type="checkbox" ${isChecked} onchange="toggleTask(${task.id}, this.checked)">
                     <div class="task-content ${titleClass}">
-                        <strong>${task.title}</strong><br>
+                        <strong>${task.title}</strong> <small style="color: #666; margin-left: 10px;">${deadlineText}</small><br>
                         <small>${task.description || ''}</small>
                     </div>
                     <button class="delete-btn" onclick="deleteTask(${task.id})">削除</button>
@@ -81,20 +82,22 @@
         async function addTask() {
             const title = document.getElementById('titleInput').value;
             const description = document.getElementById('descInput').value;
+            const deadline = document.getElementById('deadlineInput').value;
             
             if (!title) {
-                alert("タスクのタイトルを入力してください。"); // エラー処理
+                alert("タスクのタイトルを入力してください。"); 
                 return;
             }
 
             await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, description })
+                body: JSON.stringify({ title, description, deadline: deadline || null })
             });
             
             document.getElementById('titleInput').value = '';
             document.getElementById('descInput').value = '';
+            document.getElementById('deadlineInput').value = '';
             fetchTasks();
         }
         // タスクをJSONファイルとしてエクスポート
