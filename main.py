@@ -30,6 +30,7 @@ class Task(Base):
     description = Column(String, nullable=True)
     is_completed = Column(Boolean, default=False)
     is_important = Column(Boolean, default=False)
+    deadline = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 Base.metadata.create_all(bind=engine)
@@ -38,12 +39,14 @@ Base.metadata.create_all(bind=engine)
 class TaskCreate(BaseModel):
     title: str = Field(..., example="買い物に行く")
     description: Optional[str] = Field(None, example="牛乳と卵を買う")
+    deadline: Optional[datetime] = None
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     is_completed: Optional[bool] = None
     is_important: Optional[bool] = None
+    deadline: Optional[datetime] = None
 
 class TaskResponse(BaseModel):
     id: int
@@ -51,6 +54,7 @@ class TaskResponse(BaseModel):
     description: Optional[str]
     is_completed: bool
     is_important: bool
+    deadline: Optional[datetime] = None
     created_at: datetime
 
     class Config:
@@ -103,7 +107,7 @@ def export_tasks(db: Session = Depends(get_db)):
 @app.post("/tasks", response_model=TaskResponse)
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     """新しいタスクを作成する"""
-    db_task = Task(title=task.title, description=task.description)
+    db_task = Task(title=task.title, description=task.description, deadline=task.deadline)
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
