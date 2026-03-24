@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Todo App</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 30px auto; padding: 20px; }
+        .task { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 15px 0; }
+        .completed { text-decoration: line-through; color: #aaa; }
+        .task-content { flex-grow: 1; margin-left: 15px; }
+        input[type="text"] { padding: 8px; margin-right: 5px; }
+        button { padding: 8px 15px; cursor: pointer; }
+        .delete-btn { color: white; background-color: #ff4d4f; border: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>タスク管理</h1>
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="titleInput" placeholder="タスクのタイトル (必須)" required>
+        <input type="text" id="descInput" placeholder="詳細 (任意)">
+        <button onclick="addTask()">追加</button>
+    </div>
+    
+    <div id="taskList"></div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/tasks';
+
+        // タスク一覧を取得して表示
+        async function fetchTasks() {
+            const res = await fetch(API_URL);
+            const tasks = await res.json();
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            
+            tasks.forEach(task => {
+                const div = document.createElement('div');
+                div.className = 'task';
+                const isChecked = task.is_completed ? 'checked' : '';
+                const titleClass = task.is_completed ? 'completed' : '';
+
+                div.innerHTML = `
+                    <input type="checkbox" ${isChecked} onchange="toggleTask(${task.id}, this.checked)">
+                    <div class="task-content ${titleClass}">
+                        <strong>${task.title}</strong><br>
+                        <small>${task.description || ''}</small>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTask(${task.id})">削除</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // 新しいタスクを追加
+        async function addTask() {
+            const title = document.getElementById('titleInput').value;
+            const description = document.getElementById('descInput').value;
+            
+            if (!title) {
+                alert("タスクのタイトルを入力してください。"); // エラー処理
+                return;
+            }
+
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description })
+            });
+            
+            document.getElementById('titleInput').value = '';
+            document.getElementById('descInput').value = '';
+            fetchTasks();
+        }
+
+        // タスクの完了状態を切り替え
+        async function toggleTask(id, isCompleted) {
+            await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_completed: isCompleted })
+            });
+            fetchTasks();
+        }
+
+        // タスクを削除
+        async function deleteTask(id) {
+            if (confirm("本当にこのタスクを削除しますか？")) { // 削除前の確認
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                fetchTasks();
+            }
+        }
+
+        // ページ読み込み時にタスク一覧を取得
+        fetchTasks();
+    </script>
+</body>
+</html>
