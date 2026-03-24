@@ -75,6 +75,8 @@
                 div.className = 'task';
                 const isChecked = task.is_completed ? 'checked' : '';
                 const titleClass = task.is_completed ? 'completed' : '';
+                const createdDate = new Date(task.created_at).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+                const createdText = `作成: ${createdDate}`;
                 const deadlineText = task.deadline ? `期限: ${new Date(task.deadline).toLocaleDateString()}` : '';
                 div.innerHTML = `
                     <button class="star-btn ${task.is_important ? 'active' : ''}" onclick="toggleStar(${task.id}, ${task.is_important})">
@@ -82,7 +84,9 @@
                     </button>
                     <input type="checkbox" ${isChecked} onchange="toggleTask(${task.id}, this.checked)">
                     <div class="task-content ${titleClass}">
-                        <strong>${task.title}</strong> <small style="color: #666; margin-left: 10px;">${deadlineText}</small><br>
+                        <strong>${task.title}</strong>
+                        <small style="color: #888; margin-left: 10px;">${createdText}</small>
+                        <small style="color: #666; margin-left: 10px;">${deadlineText}</small><br>
                         <small>${task.description || ''}</small>
                     </div>
                     <button onclick="openEditModal(${task.id}, '${task.title}', '${task.description || ''}')" style="margin-right: 5px; background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 4px; padding: 5px 10px; cursor: pointer;">編集</button>
