@@ -48,6 +48,13 @@ class TaskUpdate(BaseModel):
     is_important: Optional[bool] = None
     deadline: Optional[datetime] = None
 
+class TaskImport(BaseModel):
+    title: str
+    description: Optional[str] = None
+    is_completed: Optional[bool] = False
+    is_important: Optional[bool] = False
+    deadline: Optional[datetime] = None
+
 class TaskResponse(BaseModel):
     id: int
     title: str
@@ -106,6 +113,24 @@ def export_tasks(db: Session = Depends(get_db)):
         content=task_list,
         headers={"Content-Disposition": 'attachment; filename="tasks.json"'}
     )
+@app.post("/tasks/import")
+def import_tasks(tasks: List[TaskImport], db: Session = Depends(get_db)):
+    """JSONデータからタスクを一括インポートする"""
+    imported_count = 0
+    for t in tasks:
+        db_task = Task(
+            title=t.title,
+            description=t.description,
+            is_completed=t.is_completed,
+            is_important=t.is_important,
+            deadline=t.deadline
+        )
+        db.add(db_task)
+        imported_count += 1
+    
+    db.commit()
+    return {"message": f"{imported_count} tasks imported successfully"}
+
 @app.post("/tasks", response_model=TaskResponse)
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     """新しいタスクを作成する"""
