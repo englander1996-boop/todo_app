@@ -43,6 +43,19 @@
     
     <div id="taskList"></div>
 
+    <div id="editModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+        <div style="background-color: white; padding: 20px; border-radius: 8px; width: 80%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0;">タスクの編集</h3>
+            <input type="hidden" id="editIdInput">
+            <input type="text" id="editTitleInput" style="width: 100%; box-sizing: border-box; margin-bottom: 10px;" placeholder="タイトル (必須)">
+            <input type="text" id="editDescInput" style="width: 100%; box-sizing: border-box; margin-bottom: 20px;" placeholder="詳細 (任意)">
+            <div style="text-align: right;">
+                <button onclick="closeEditModal()" style="background-color: #ccc; color: black; border: none; border-radius: 4px;">キャンセル</button>
+                <button onclick="saveEdit()" style="background-color: #4CAF50; color: white; border: none; border-radius: 4px; margin-left: 10px;">保存</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = 'http://localhost:8000/tasks';
 
@@ -72,6 +85,7 @@
                         <strong>${task.title}</strong> <small style="color: #666; margin-left: 10px;">${deadlineText}</small><br>
                         <small>${task.description || ''}</small>
                     </div>
+                    <button onclick="openEditModal(${task.id}, '${task.title}', '${task.description || ''}')" style="margin-right: 5px; background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 4px; padding: 5px 10px; cursor: pointer;">編集</button>
                     <button class="delete-btn" onclick="deleteTask(${task.id})">削除</button>
                 `;
                 list.appendChild(div);
@@ -133,6 +147,39 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ is_important: !currentStatus })
             });
+            fetchTasks();
+        }
+        // タスクの内容を編集
+        function openEditModal(id, currentTitle, currentDesc) {
+            document.getElementById('editIdInput').value = id;
+            document.getElementById('editTitleInput').value = currentTitle;
+            document.getElementById('editDescInput').value = currentDesc;
+            document.getElementById('editModal').style.display = 'flex'; // モーダルを表示
+        }
+
+        // モーダルを閉じる
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none'; // モーダルを隠す
+        }
+
+        // 編集内容をバックエンドに保存する
+        async function saveEdit() {
+            const id = document.getElementById('editIdInput').value;
+            const newTitle = document.getElementById('editTitleInput').value;
+            const newDesc = document.getElementById('editDescInput').value;
+
+            if (!newTitle) {
+                alert("タスクのタイトルを入力してください。");
+                return;
+            }
+
+            await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle, description: newDesc })
+            });
+            
+            closeEditModal();
             fetchTasks();
         }
     </script>

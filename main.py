@@ -95,6 +95,8 @@ def export_tasks(db: Session = Depends(get_db)):
             "title": t.title,
             "description": t.description,
             "is_completed": t.is_completed,
+            "is_important": t.is_important,
+            "deadline": t.deadline.isoformat() if t.deadline else None,
             "created_at": t.created_at.isoformat()
         }
         for t in tasks
