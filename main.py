@@ -29,6 +29,7 @@ class Task(Base):
     title = Column(String, index=True, nullable=False)
     description = Column(String, nullable=True)
     is_completed = Column(Boolean, default=False)
+    is_important = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 Base.metadata.create_all(bind=engine)
@@ -42,12 +43,14 @@ class TaskUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     is_completed: Optional[bool] = None
+    is_important: Optional[bool] = None
 
 class TaskResponse(BaseModel):
     id: int
     title: str
     description: Optional[str]
     is_completed: bool
+    is_important: bool
     created_at: datetime
 
     class Config:
