@@ -44,6 +44,8 @@
         <input type="date" id="deadlineInput" style="padding: 8px;">
         <button onclick="addTask()">追加</button>
         <button onclick="exportTasks()" style="margin-left: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer;">⬇ エクスポート</button>
+        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importTasks(event)">
+        <button onclick="document.getElementById('importFile').click()" style="margin-left: 10px; background-color: #2196F3; color: white; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer;">⬆ インポート</button>
     </div>
     
     <div id="taskList"></div>
@@ -146,7 +148,34 @@
         function exportTasks() {
             window.location.href = API_URL + '/export';
         }
+        
+        // JSONファイルを読み込んでインポートする
+        async function importTasks(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    // ファイルの中身を読み取ってJSONに変換
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // バックエンドの一括登録APIにデータを送信
+                    await fetch(`${API_URL}/import`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(importedData)
+                    });
+                    
+                    fetchTasks(); // 画面を更新
+                    showToast("データをインポートしました！");
+                } catch (error) {
+                    alert("ファイルの読み込みに失敗しました。正しいJSONファイルを選んでください。");
+                }
+            };
+            reader.readAsText(file); // テキストとしてファイルの読み込みを開始
+            event.target.value = ''; // 同じファイルを連続で選べるようにリセット
+        }
         // タスクの完了状態を切り替え
         async function toggleTask(id, isCompleted) {
             await fetch(`${API_URL}/${id}`, {
