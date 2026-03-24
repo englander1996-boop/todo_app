@@ -28,6 +28,11 @@
     <h1>Todo App</h1>
 
     <div style="margin-bottom: 10px; text-align: right;">
+        <select id="statusFilter" onchange="fetchTasks()" style="padding: 5px; border-radius: 4px; margin-right: 10px;">
+            <option value="">全タスク</option>
+            <option value="uncompleted">未完了のみ</option>
+            <option value="completed">完了済みのみ</option>
+        </select>
         <select id="sortOrder" onchange="fetchTasks()" style="padding: 5px; border-radius: 4px;">
             <option value="desc">新しい順</option>
             <option value="asc">古い順</option>
@@ -55,15 +60,32 @@
             </div>
         </div>
     </div>
-
+    <div id="toast" style="visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 4px; padding: 12px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); transition: opacity 0.5s; opacity: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.2);"></div>
     <script>
         const API_URL = 'http://localhost:8000/tasks';
-
+        // 通知（トースト）を表示する関数
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.style.visibility = "visible";
+            toast.style.opacity = "1";
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                setTimeout(() => toast.style.visibility = "hidden", 500);
+            }, 3000); 
+        }
         // タスク一覧を取得して表示
         async function fetchTasks() {
             // プルダウンから「新しい順(desc)」か「古い順(asc)」かを取得
             const order = document.getElementById('sortOrder').value;
-            
+            const status = document.getElementById('statusFilter').value;
+
+            // URLに status があれば追加する
+            let url = `${API_URL}?order=${order}`;
+            if (status) {
+                url += `&status=${status}`;
+            }
+
             // URLの末尾に ?order=desc のように条件をくっつけてバックエンドに送る
             const res = await fetch(`${API_URL}?order=${order}`);
             const tasks = await res.json();
@@ -117,7 +139,9 @@
             document.getElementById('descInput').value = '';
             document.getElementById('deadlineInput').value = '';
             fetchTasks();
+            showToast("タスクを追加しました！");
         }
+
         // タスクをJSONファイルとしてエクスポート
         function exportTasks() {
             window.location.href = API_URL + '/export';
@@ -131,6 +155,7 @@
                 body: JSON.stringify({ is_completed: isCompleted })
             });
             fetchTasks();
+            showToast("タスクの状態を変更しました！");
         }
 
         // タスクを削除
@@ -138,6 +163,7 @@
             if (confirm("本当にこのタスクを削除しますか？")) { // 削除前の確認
                 await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
                 fetchTasks();
+                showToast("タスクを削除しました！");
             }
         }
 
@@ -185,7 +211,9 @@
             
             closeEditModal();
             fetchTasks();
+            showToast("タスクを更新しました！");
         }
+    
     </script>
 </body>
 </html>
