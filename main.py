@@ -1,13 +1,15 @@
-#Todoアプリのバックエンド
-#DB設定: データを保存するファイル（SQLite）の作成と接続準備 。
-#データ検証のルール: 画面とやり取りするデータが正しい形かを自動チェックする設定 。
-#サーバー準備: FastAPIを用いたWebアプリケーション本体の立ち上げ 。
-#APIの作成: 画面から呼び出せる4つの機能を提供。
-#   作成 (POST): 新しいタスクを保存 。
-#   取得 (GET): 全タスクを一覧で返す
-#   更新 (PUT): タスクの内容や完了状態を上書き 。
-#   削除 (DELETE): 指定タスクを消去 。
-
+# Todoアプリのバックエンド (FastAPI)
+#
+# 1. DB設定: SQLiteを使用したデータ保存ファイル（todos.db）の作成と接続準備。
+# 2. データ検証・スキーマ: Pydanticを用いた入出力データの型チェックとバリデーション設定。
+# 3. サーバー設定: FastAPIアプリケーションの立ち上げとCORS（クロスオリジン通信）の許可。
+# 4. APIエンドポイント群: フロントエンドから呼び出せる以下の機能を提供。
+#    - 取得 (GET /tasks): タスク一覧を取得。完了状態の絞り込みや、作成日時の並び替えに対応。
+#    - 作成 (POST /tasks): 新しいタスクをデータベースに保存。
+#    - 更新 (PUT /tasks/{id}): 指定タスクのタイトル、詳細、完了状態、重要度などを更新。
+#    - 削除 (DELETE /tasks/{id}): 指定タスクをデータベースから削除。
+#    - エクスポート (GET /tasks/export): 全タスクをJSONファイルとして一括ダウンロード。
+#    - インポート (POST /tasks/import): JSONファイルからタスクを一括登録（バルクインサート）。
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
